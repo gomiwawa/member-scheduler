@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <style>
+    :root { color-scheme: light; --ink:#24322d; --muted:#68756f; --line:#dfe7e1; --paper:#fbfcfa; --green:#285a45; --green-soft:#e9f2ed; --gold:#a66f1b; --shadow:0 12px 40px rgba(34,53,43,.12); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f3f6f3; color:var(--ink); }
+    button,input,select,textarea { font:inherit; }
+    button { cursor:pointer; }
+    .app { max-width:1440px; padding:30px 30px 56px; margin:0 auto; }
+    .topline { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:24px; }
+    .eyebrow { color:var(--green); font-size:12px; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:5px 0 0; font-size:clamp(24px,3vw,34px); letter-spacing:-.04em; }
+    .subhead { margin:8px 0 0; color:var(--muted); font-size:14px; }
+    .primary,.secondary,.danger,.nav-button { border:1px solid transparent; border-radius:11px; min-height:42px; padding:9px 14px; font-weight:650; transition:.15s ease; }
+    .primary { color:white; background:var(--green); box-shadow:0 4px 12px rgba(40,90,69,.15); }
+    .primary:hover { background:#1d4936; }
+    .secondary,.nav-button { background:white; border-color:var(--line); color:var(--ink); }
+    .secondary:hover,.nav-button:hover { border-color:#a9bbb0; background:#f9fbf9; }
+    .datebar { display:flex; align-items:center; gap:8px; background:white; border:1px solid var(--line); border-radius:16px; padding:12px; box-shadow:0 3px 14px rgba(35,54,44,.035); }
+    .datebar .nav-button { padding-inline:13px; }
+    .datebar input { border:1px solid var(--line); border-radius:10px; color:var(--ink); min-height:42px; padding:8px 10px; background:white; }
+    .date-title { margin:20px 2px 12px; display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+    .date-title h2 { margin:0; font-size:21px; letter-spacing:-.03em; }
+    .count { color:var(--muted); font-size:13px; }
+    .table-shell { background:white; border:1px solid var(--line); border-radius:16px; overflow:auto; box-shadow:0 5px 20px rgba(35,54,44,.04); }
+    table { border-collapse:separate; border-spacing:0; width:100%; min-width:900px; table-layout:fixed; }
+    thead th { height:48px; background:#f7f9f7; color:#526159; border-bottom:1px solid var(--line); font-size:13px; font-weight:720; }
+    thead th:first-child { width:108px; position:sticky; left:0; z-index:2; }
+    tbody th { width:108px; text-align:left; padding:10px 13px; color:#4e5d55; font-size:13px; font-weight:670; background:#fbfcfb; border-right:1px solid var(--line); border-bottom:1px solid var(--line); position:sticky; left:0; z-index:1; }
+    tbody td { height:74px; padding:7px; vertical-align:top; border-right:1px solid #edf1ed; border-bottom:1px solid #edf1ed; }
+    tbody tr:last-child th, tbody tr:last-child td { border-bottom:0; }
+    thead th:last-child, tbody td:last-child { border-right:0; }
+    .slot-time { display:block; white-space:nowrap; }
+    .slot-period { display:block; color:#89958e; font-size:11px; margin-top:2px; font-weight:500; }
+    .booking { width:100%; border:1px solid #cde0d4; border-radius:9px; padding:8px; text-align:left; background:var(--green-soft); color:#234d39; font-size:12px; line-height:1.4; font-weight:680; }
+    .booking:hover { border-color:#7ba88d; background:#deede4; }
+    .booking + .booking { margin-top:5px; }
+    .add-slot { width:100%; height:42px; border:1px dashed transparent; border-radius:8px; color:#a0aca4; background:transparent; font-size:18px; }
+    td:hover .add-slot, .add-slot:focus-visible { border-color:#c8d8cd; background:#f6faf7; color:var(--green); }
+    .mobile-list { display:none; }
+    .storage-notice { margin:12px 0 0; padding:11px 14px; border:1px solid #c9dbcf; border-radius:11px; color:#345b43; background:#f0f7f2; font-size:13px; }
+    .empty { padding:34px 18px; text-align:center; color:var(--muted); background:white; border:1px dashed #ccd8cf; border-radius:14px; }
+    .empty strong { color:var(--ink); display:block; margin-bottom:5px; }
+    .status { position:fixed; left:50%; bottom:22px; transform:translate(-50%,18px); opacity:0; pointer-events:none; transition:.2s; color:white; background:#243c30; padding:11px 16px; border-radius:11px; box-shadow:var(--shadow); z-index:10; font-size:14px; }
+    .status.show { opacity:1; transform:translate(-50%,0); }
+    .loading { position:fixed; inset:0; display:grid; place-items:center; background:rgba(243,246,243,.72); z-index:5; backdrop-filter:blur(2px); color:#40564a; font-weight:650; }
+    .loading[hidden] { display:none; }
+    dialog { border:0; border-radius:18px; width:min(520px,calc(100vw - 28px)); padding:0; color:var(--ink); box-shadow:0 26px 90px rgba(17,36,25,.28); }
+    dialog::backdrop { background:rgba(20,34,27,.42); backdrop-filter:blur(2px); }
+    .dialog-head { padding:22px 24px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .dialog-head h2 { margin:0; font-size:21px; }
+    .dialog-head p { margin:5px 0 0; color:var(--muted); font-size:13px; }
+    .x { border:0; background:transparent; color:#6f7b73; font-size:24px; line-height:1; padding:2px 6px; }
+    form { padding:20px 24px 24px; }
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:15px 14px; }
+    .field { min-width:0; }
+    .field.wide { grid-column:1/-1; }
+    label { display:block; margin-bottom:6px; color:#536159; font-size:13px; font-weight:700; }
+    input,select,textarea { width:100%; border:1px solid #d6e0d9; border-radius:10px; padding:10px 11px; background:white; color:var(--ink); outline:none; }
+    input:focus,select:focus,textarea:focus { border-color:#70a184; box-shadow:0 0 0 3px rgba(72,133,97,.13); }
+    textarea { min-height:88px; resize:vertical; }
+    .form-error { color:#a6352a; font-size:13px; min-height:18px; margin-top:10px; }
+    .form-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; }
+    .right-actions { display:flex; gap:8px; margin-left:auto; }
+    .danger { background:white; border-color:#edc9c4; color:#9c352d; }
+    .danger:hover { background:#fff5f3; }
+    .detail-value { white-space:pre-wrap; overflow-wrap:anywhere; }
+    @media(max-width:760px) {
+      .app { padding:22px 15px calc(38px + env(safe-area-inset-bottom)); }
+      .topline { margin-bottom:18px; align-items:center; }
+      .subhead { max-width:250px; font-size:13px; }
+      .topline > .primary { min-width:44px; width:44px; padding:0; font-size:0; }
+      .topline > .primary::after { content:'+'; font-size:25px; line-height:1; }
+      .datebar { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; padding:8px; border-radius:13px; }
+      .datebar .nav-button { padding:8px 4px; min-height:40px; font-size:12px; white-space:nowrap; }
+      .datebar input { grid-column:1/-1; width:100%; min-height:40px; }
+      .date-title { margin-top:18px; }
+      .date-title h2 { font-size:19px; }
+      .table-shell { display:none; }
+      .mobile-list { display:flex; flex-direction:column; gap:9px; }
+      .mobile-slot { background:white; border:1px solid var(--line); border-radius:13px; overflow:hidden; }
+      .mobile-time { background:#f7f9f7; color:#526159; border-bottom:1px solid #edf1ed; padding:9px 13px; font-size:13px; font-weight:750; }
+      .mobile-bookings { padding:8px; display:grid; gap:7px; }
+      .mobile-booking { display:flex; align-items:center; gap:8px; width:100%; border:1px solid #cde0d4; border-radius:10px; padding:11px 12px; text-align:left; background:var(--green-soft); color:#234d39; }
+      .mobile-booking .name { font-size:14px; font-weight:720; flex:1; }
+      .mobile-booking .room { color:#4b7059; font-size:12px; white-space:nowrap; }
+      .mobile-add { width:100%; border:1px dashed #ccd8cf; border-radius:9px; min-height:39px; color:#63746a; background:white; }
+      .empty { padding:26px 14px; }
+    }
+    @media(max-width:420px) {
+      .fields { grid-template-columns:1fr; }
+      .field.wide { grid-column:auto; }
+      .dialog-head { padding:19px 18px 12px; }
+      form { padding:17px 18px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topline">
+      <div>
+        <div class="eyebrow">MY DAILY SCHEDULE</div>
+        <h1>나의 예약 스케줄러</h1>
+        <p class="subhead">내 계정에서만 보는 하루 수업 일정</p>
+      </div>
+      <button class="primary" id="newBooking" type="button">＋ 예약 등록</button>
+    </header>
+
+    <div class="storage-notice">예약 정보는 이 브라우저에 저장됩니다. 다른 기기나 브라우저와 자동으로 공유되지 않습니다.</div>
+
+    <nav class="datebar" aria-label="날짜 이동">
+      <button class="nav-button" type="button" id="previousDay">〈 이전날</button>
+      <button class="nav-button" type="button" id="today">오늘</button>
+      <button class="nav-button" type="button" id="tomorrow">내일</button>
+      <input type="date" id="datePicker" aria-label="날짜 선택">
+      <button class="nav-button" type="button" id="nextDay">다음날 〉</button>
+    </nav>
+
+    <section class="date-title">
+      <h2 id="dateHeading">불러오는 중</h2>
+      <span class="count" id="bookingCount"></span>
+    </section>
+    <section id="schedule" aria-live="polite"></section>
+  </main>
+
+  <div class="loading" id="loading">일정을 불러오고 있어요…</div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+
+  <dialog id="bookingDialog">
+    <div class="dialog-head">
+      <div><h2 id="dialogTitle">예약 등록</h2><p id="dialogSubtitle">회원과 수업 정보를 입력해 주세요.</p></div>
+      <button class="x" id="closeDialog" type="button" aria-label="닫기">×</button>
+    </div>
+    <form id="bookingForm">
+      <input type="hidden" name="id">
+      <div class="fields">
+        <div class="field wide"><label for="member">회원 이름</label><input id="member" name="member" list="memberList" maxlength="80" autocomplete="off" required placeholder="이름을 입력하거나 선택하세요"><datalist id="memberList"></datalist></div>
+        <div class="field"><label for="bookingDate">날짜</label><input type="date" id="bookingDate" name="date" required></div>
+        <div class="field"><label for="time">시간</label><select id="time" name="time" required></select></div>
+        <div class="field wide"><label for="room">강의실</label><select id="room" name="room"></select></div>
+        <div class="field wide"><label for="type">수업 종류</label><input id="type" name="type" maxlength="120" placeholder="예: 개인 수업, 보강"></div>
+        <div class="field wide"><label for="note">비고</label><textarea id="note" name="note" maxlength="2000" placeholder="필요한 메모가 있으면 적어 주세요"></textarea></div>
+      </div>
+      <div class="form-error" id="formError" role="alert"></div>
+      <div class="form-actions">
+        <button class="danger" id="deleteBooking" type="button" hidden>삭제</button>
+        <div class="right-actions"><button class="secondary" id="cancelDialog" type="button">닫기</button><button class="primary" id="saveBooking" type="submit">저장</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const SLOTS = ['10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','19:30','20:00','20:30','21:00'];
+    const ROOMS = ['1','2','3','4','5','미지정'];
+    const STORAGE_KEY = 'reservationScheduler.appointments.v1';
+    const state = { date: '', appointments: [], members: [], rooms: ROOMS, times: SLOTS, statusTimer: 0, localAppointments: loadStoredAppointments() };
+    const $ = selector => document.querySelector(selector);
+    const schedule = $('#schedule');
+    const dialog = $('#bookingDialog');
+    const form = $('#bookingForm');
+
+    function localDate(date = new Date()) {
+      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);
+      const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${values.year}-${values.month}-${values.day}`;
+    }
+    function shiftDate(dateText, amount) {
+      const [year, month, day] = dateText.split('-').map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day + amount));
+      return localDate(date);
+    }
+    function dateLabel(dateText) {
+      const [year, month, day] = dateText.split('-').map(Number);
+      const date = new Date(year, month - 1, day, 12);
+      const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' }).format(date);
+      const today = localDate();
+      const relative = dateText === today ? ' · 오늘' : dateText === shiftDate(today, 1) ? ' · 내일' : '';
+      return `${year}년 ${month}월 ${day}일 ${weekday}${relative}`;
+    }
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+    }
+    function displayTime(time) {
+      const [hour, minute] = time.split(':').map(Number);
+      const period = hour < 12 ? '오전' : '오후';
+      const twelve = hour % 12 || 12;
+      return `${period} ${twelve}시${minute ? ` ${minute}분` : ''}`;
+    }
+    function roomLabel(room) { return room === '미지정' ? '미지정' : `${room}강의실`; }
+
+    function loadStoredAppointments() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveStoredAppointments() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.localAppointments));
+    }
+
+    function runLocalStorage(method, input, onSuccess, onFailure) {
+      setTimeout(() => {
+        try { onSuccess(runLocalStorageAction(method, input)); }
+        catch (error) { onFailure({ message: error.message || '저장 작업을 처리하지 못했습니다.' }); }
+      }, 120);
+    }
+
+    function runLocalStorageAction(method, input) {
+      if (method === 'getSchedulerData') {
+        const members = [...new Set(state.localAppointments.map(item => item.member))];
+        return { date:input, appointments:state.localAppointments.filter(item => item.date === input).map(item => ({...item})), members, rooms:ROOMS, times:SLOTS };
+      }
+      if (method === 'saveReservation') {
+        const existing = input.id ? state.localAppointments.find(item => item.id === input.id) : null;
+        if (input.id && !existing) throw new Error('예약을 찾을 수 없습니다.');
+        const booking = {...input, id:existing ? existing.id : `local-${Date.now()}-${Math.random().toString(16).slice(2)}`};
+        if (existing) Object.assign(existing, booking); else state.localAppointments.push(booking);
+        saveStoredAppointments();
+        return { ok:true, id:booking.id };
+      }
+      if (method === 'deleteReservation') {
+        const before = state.localAppointments.length;
+        state.localAppointments = state.localAppointments.filter(item => item.id !== input);
+        if (before === state.localAppointments.length) throw new Error('예약을 찾을 수 없습니다.');
+        saveStoredAppointments();
+        return { ok:true };
+      }
+      throw new Error('지원하지 않는 저장 작업입니다.');
+    }
+
+    function loadDate(date) {
+      state.date = date;
+      $('#datePicker').value = date;
+      $('#dateHeading').textContent = dateLabel(date);
+      $('#bookingCount').textContent = '';
+      schedule.innerHTML = '';
+      $('#loading').hidden = false;
+      runLocalStorage('getSchedulerData', date, data => {
+          state.appointments = data.appointments || [];
+          state.members = data.members || [];
+          state.rooms = data.rooms || ROOMS;
+          state.times = data.times || SLOTS;
+          renderSchedule();
+          renderMemberSuggestions();
+          $('#loading').hidden = true;
+        }, error => {
+          $('#loading').hidden = true;
+          schedule.innerHTML = `<div class="empty"><strong>일정을 불러오지 못했어요.</strong>${esc(error.message || '초기 설정과 배포 권한을 확인해 주세요.')}</div>`;
+        });
+    }
+
+    function bookingButton(booking) {
+      const label = `${booking.member} · ${booking.time} · ${roomLabel(booking.room)}`;
+      return `<button class="booking" type="button" data-id="${esc(booking.id)}" aria-label="${esc(label)} 상세보기">${esc(label)}</button>`;
+    }
+    function renderSchedule() {
+      const bookings = state.appointments;
+      $('#dateHeading').textContent = dateLabel(state.date);
+      $('#bookingCount').textContent = `예약 ${bookings.length}건`;
+      const roomCols = state.rooms.map(room => `<th scope="col">${esc(roomLabel(room))}</th>`).join('');
+      const rows = state.times.map(time => {
+        const cells = state.rooms.map(room => {
+          const matches = bookings.filter(item => item.time === time && item.room === room);
+          const controls = matches.map(bookingButton).join('');
+          const add = `<button class="add-slot" type="button" data-add-time="${time}" data-add-room="${esc(room)}" aria-label="${esc(displayTime(time))} ${esc(roomLabel(room))} 예약 등록">＋</button>`;
+          return `<td>${controls}${add}</td>`;
+        }).join('');
+        return `<tr><th scope="row"><span class="slot-time">${time}</span><span class="slot-period">${displayTime(time)}</span></th>${cells}</tr>`;
+      }).join('');
+      const desktop = `<div class="table-shell"><table><thead><tr><th scope="col">시간</th>${roomCols}</tr></thead><tbody>${rows}</tbody></table></div>`;
+      const mobile = `<div class="mobile-list">${state.times.map(time => {
+        const matches = bookings.filter(item => item.time === time).sort((a,b) => state.rooms.indexOf(a.room)-state.rooms.indexOf(b.room) || a.member.localeCompare(b.member,'ko'));
+        const bookingCards = matches.map(item => `<button class="mobile-booking" type="button" data-id="${esc(item.id)}" aria-label="${esc(item.member)} · ${item.time} · ${roomLabel(item.room)} 상세보기"><span class="name">${esc(item.member)}</span><span class="room">${esc(roomLabel(item.room))}</span></button>`).join('');
+        return `<article class="mobile-slot"><div class="mobile-time">${time} <span style="font-weight:500;color:#89958e">${esc(displayTime(time))}</span></div><div class="mobile-bookings">${bookingCards}<button class="mobile-add" type="button" data-add-time="${time}" data-add-room="미지정">＋ 이 시간에 예약 등록</button></div></article>`;
+      }).join('')}</div>`;
+      schedule.innerHTML = desktop + mobile;
+      schedule.querySelectorAll('[data-id]').forEach(button => button.addEventListener('click', () => openBooking(button.dataset.id)));
+      schedule.querySelectorAll('[data-add-time]').forEach(button => button.addEventListener('click', () => openBooking(null, button.dataset.addTime, button.dataset.addRoom)));
+    }
+
+    function renderMemberSuggestions() {
+      $('#memberList').innerHTML = state.members.map(name => `<option value="${esc(name)}"></option>`).join('');
+    }
+    function populateSelects() {
+      $('#time').innerHTML = SLOTS.map(time => `<option value="${time}">${time} · ${displayTime(time)}</option>`).join('');
+      $('#room').innerHTML = ROOMS.map(room => `<option value="${esc(room)}">${esc(roomLabel(room))}</option>`).join('');
+    }
+    function openBooking(id = null, time = '10:00', room = '미지정') {
+      form.reset();
+      $('#formError').textContent = '';
+      $('#bookingDate').value = state.date;
+      $('#time').value = time;
+      $('#room').value = room;
+      const booking = id ? state.appointments.find(item => item.id === id) : null;
+      $('#dialogTitle').textContent = booking ? '예약 수정' : '예약 등록';
+      $('#dialogSubtitle').textContent = booking ? `${dateLabel(booking.date)} · ${booking.time}` : '회원과 수업 정보를 입력해 주세요.';
+      $('#deleteBooking').hidden = !booking;
+      if (booking) {
+        form.elements.id.value = booking.id;
+        form.elements.member.value = booking.member;
+        form.elements.date.value = booking.date;
+        form.elements.time.value = booking.time;
+        form.elements.room.value = booking.room;
+        form.elements.type.value = booking.type;
+        form.elements.note.value = booking.note;
+      }
+      dialog.showModal();
+    }
+    function closeDialog() { if (dialog.open) dialog.close(); }
+    function showStatus(message) {
+      const status = $('#status');
+      status.textContent = message;
+      status.classList.add('show');
+      clearTimeout(state.statusTimer);
+      state.statusTimer = setTimeout(() => status.classList.remove('show'), 2600);
+    }
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const button = $('#saveBooking');
+      const input = Object.fromEntries(new FormData(form).entries());
+      input.room ||= '미지정';
+      input.member = input.member.trim();
+      if (!input.member) { $('#formError').textContent = '회원 이름을 입력해 주세요.'; return; }
+      button.disabled = true;
+      button.textContent = '저장 중…';
+      $('#formError').textContent = '';
+      runLocalStorage('saveReservation', input, () => {
+          button.disabled = false;
+          button.textContent = '저장';
+          closeDialog();
+          showStatus(input.id ? '예약을 수정했습니다.' : '예약을 등록했습니다.');
+          loadDate(state.date);
+        }, error => {
+          button.disabled = false;
+          button.textContent = '저장';
+          $('#formError').textContent = error.message || '저장하지 못했습니다.';
+        });
+    });
+
+    $('#deleteBooking').addEventListener('click', () => {
+      const id = form.elements.id.value;
+      if (!id || !window.confirm('이 예약을 삭제할까요? 삭제하면 기록이 남지 않습니다.')) return;
+      const button = $('#deleteBooking');
+      button.disabled = true;
+      button.textContent = '삭제 중…';
+      runLocalStorage('deleteReservation', id, () => {
+          closeDialog();
+          showStatus('예약을 삭제했습니다.');
+          loadDate(state.date);
+        }, error => {
+          button.disabled = false;
+          button.textContent = '삭제';
+          $('#formError').textContent = error.message || '삭제하지 못했습니다.';
+        });
+    });
+
+    $('#newBooking').addEventListener('click', () => openBooking());
+    $('#closeDialog').addEventListener('click', closeDialog);
+    $('#cancelDialog').addEventListener('click', closeDialog);
+    $('#previousDay').addEventListener('click', () => loadDate(shiftDate(state.date, -1)));
+    $('#today').addEventListener('click', () => loadDate(localDate()));
+    $('#tomorrow').addEventListener('click', () => loadDate(shiftDate(localDate(), 1)));
+    $('#nextDay').addEventListener('click', () => loadDate(shiftDate(state.date, 1)));
+    $('#datePicker').addEventListener('change', event => { if (event.target.value) loadDate(event.target.value); });
+    populateSelects();
+    loadDate(shiftDate(localDate(), 1));
+  </script>
+</body>
+</html>
